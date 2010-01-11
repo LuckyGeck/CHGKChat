@@ -4,693 +4,1064 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, XPMan, IdBaseComponent, IdComponent, IdTCPConnection,
-  IdTCPClient, StdCtrls, ExtCtrls, frSetup, IdCoder, IdCoder3to4,
-  IdCoderMIME, inifiles, ComCtrls, AdvAlertWindow, MMSystem;
+  Dialogs, StdCtrls, IdCoder, IdCoder3to4, IdCoderMIME, IdBaseComponent,
+  IdComponent, IdTCPServer, IdIPWatch, XPMan, IdTCPConnection, IdTCPClient,
+  IdHTTP, frEditor, ComCtrls, Grids, RxRichEd, Buttons, ExtCtrls, Menus,
+  IdAntiFreezeBase, IdAntiFreeze, HKDUnit1, Wait, MMSystem;
+
+type
+  TEditStreamCallBack = function(dwCookie: Longint; pbBuff: PByte;
+    cb: Longint; var pcb: Longint): DWORD;
+  stdcall;
+
+  TEditStream = record
+    dwCookie: Longint;
+    dwError: Longint;
+    pfnCallback: TEditStreamCallBack;
+  end;
 
 type
   TForm1 = class(TForm)
-    Panel1: TPanel;
-    Button1: TButton;
-    Button2: TButton;
-    client: TIdTCPClient;
-    XPManifest1: TXPManifest;
+    server: TIdTCPServer;
     b64en: TIdEncoderMIME;
     b64de: TIdDecoderMIME;
-    GroupBox3: TGroupBox;
-    Label5: TLabel;
-    Button3: TButton;
-    checkinet: TTimer;
-    Panel2: TPanel;
-    GroupBox2: TGroupBox;
-    Label4: TLabel;
-    Label3: TLabel;
-    Label2: TLabel;
-    Edit1: TEdit;
-    Edit2: TEdit;
-    Edit3: TEdit;
+    http: TIdHTTP;
+    XPManifest1: TXPManifest;
+    od: TOpenDialog;
+    sd: TSaveDialog;
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
+    TabSheet3: TTabSheet;
     GroupBox1: TGroupBox;
-    Label6: TLabel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Button4: TButton;
-    game_timer: TTimer;
-    time_sec: TTimer;
-    tmUsrList: TTimer;
     Memo1: TMemo;
-    AdvAlertWindow1: TAdvAlertWindow;
-    Vspliv: TTimer;
-    Button5: TButton;
+    GroupBox2: TGroupBox;
     Button6: TButton;
+    GroupBox3: TGroupBox;
+    Button1: TButton;
+    Button3: TButton;
+    Label2: TLabel;
+    Edit2: TEdit;
+    Edit1: TEdit;
+    Label1: TLabel;
+    GroupBox4: TGroupBox;
+    Edit3: TEdit;
+    Label6: TLabel;
+    Label5: TLabel;
+    Label4: TLabel;
+    Button4: TButton;
+    Button5: TButton;
+    GroupBox5: TGroupBox;
+    GroupBox6: TGroupBox;
+    ComInfo: TStringGrid;
+    GroupBox7: TGroupBox;
+    FullResult: TStringGrid;
+    memo2: TRxRichEdit;
     Button7: TButton;
+    BitBtn1: TBitBtn;
+    BitBtn2: TBitBtn;
+    Memo3: TMemo;
+    Timer1: TTimer;
+    Panel1: TPanel;
+    Timer2: TTimer;
+    PopupMenu1: TPopupMenu;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    N3: TMenuItem;
+    GroupBox8: TGroupBox;
+    ListBox1: TListBox;
+    Label3: TLabel;
+    Edit4: TEdit;
+    Button2: TButton;
+    CheckBox1: TCheckBox;
+    Button8: TButton;
+    Button9: TButton;
+    PopupMenu2: TPopupMenu;
+    kick1: TMenuItem;
+    N4: TMenuItem;
+    Dcnfdbnm1: TMenuItem;
+    N5: TMenuItem;
+    N6: TMenuItem;
+    IdAntiFreeze1: TIdAntiFreeze;
+    Wait1: TWait;
+    N7: TMenuItem;
+    onemsc: TTimer;
+    PrivateMsg1: TMenuItem;
     procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
-    procedure clientDisconnected(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure game_timerTimer(Sender: TObject);
-    procedure time_secTimer(Sender: TObject);
-    procedure tmUsrListTimer(Sender: TObject);
-    procedure VsplivTimer(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
+    procedure ReDrawGreed;
+    procedure ReDrawComInfo;
+    procedure ReDrawUsersList;
+    procedure BlockQuestions;
+    procedure UnBlockQuestions;
+    procedure DoAnswers;
+    procedure FullResultMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure serverLoginCommand(ASender: TIdCommand);
+    procedure serverreadyCommand(ASender: TIdCommand);
+    procedure ComInfoMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure serverDisconnect(AThread: TIdPeerThread);
+    procedure servermsg_sendCommand(ASender: TIdCommand);
+    procedure serverstart_gameCommand(ASender: TIdCommand);
     procedure Button6Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure ReDrawQuestion(i: integer);
+    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure serverans_sendCommand(ASender: TIdCommand);
+    procedure Timer2Timer(Sender: TObject);
+    procedure serverusr_listCommand(ASender: TIdCommand);
+    procedure N1Click(Sender: TObject);
+    procedure N2Click(Sender: TObject);
+    procedure serverConnect(AThread: TIdPeerThread);
+    procedure CheckBox1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure ListBox1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure kick1Click(Sender: TObject);
+    procedure Dcnfdbnm1Click(Sender: TObject);
+    procedure N5Click(Sender: TObject);
+    procedure N6Click(Sender: TObject);
+    procedure serverresultsCommand(ASender: TIdCommand);
+    procedure Wait1Timeout(Sender: TObject);
+    procedure N4Click(Sender: TObject);
+    procedure N7Click(Sender: TObject);
+    procedure onemscTimer(Sender: TObject);
+    procedure PrivateMsg1Click(Sender: TObject);
+    procedure serverprivateCommand(ASender: TIdCommand);
   private
     { Private declarations }
   public
-    procedure ClearAll;
-    procedure DisableAll;
-    procedure EnableAll;
-    procedure EnableEdits;
-    procedure DisableEdits;
-    function RegAndLogin(login: string): byte;
-    procedure Report(s: string);
-    procedure StartGame;
-    procedure SetTimers;
+    { Public declarations }
+    procedure KickUser(name: string);
+    procedure FillDbInfo;
+    procedure PublishMsg(name, say: string; time: TDateTime);
+    procedure PrivateMsg(forwho, name, say: string; time: TDateTime);
+    procedure col(ARow: Integer; bcolor: Tcolor; AColor: TColor);
+    procedure PutRTFSelection(RichEdit: TRxRichEdit; SourceStream: TStream);
+    procedure DrawSmile(smile: string; path: string; ARow: integer);
   end;
 
 const
-  time_minute = 60;
-  time_write = 10;
-  sEgg = 'CHGKRULEZ';
-  iEggLength = length(sEgg);
+  host = 'http://www.chgk-online.tu2.ru/';
+  url = 'http://www.chgk-online.tu2.ru/set.php';
+
+type
+  TClient = class(TObject)
+    Name: string;
+    Status: string;
+    Thread: Pointer;
+    answers: Tstringlist;
+    p_answers: Tstringlist;
+    points: integer;
+    dpoints: integer;
+    cache: string;
+    b: boolean;
+  end;
 
 var
   Form1: TForm1;
-  MyName: string = '';
-  ServerIP: string = '';
-  logged: boolean = false;
+  questions: TStringList;
+  users: TList;
+  db: string = '';
+  qnum: integer;
+  UsersQuestionsSent: integer;
+  UsersAnsSent: integer;
+  GameOnline: boolean;
+  Asked: integer;
+  //-------
+  onesec_name: string;
+  onesec_say: string;
+  onesec_time: TDateTime;
 
-  ini_path: string = '/setings.ini';
-  Ini: TIniFile;
-
-  time_question: integer;
-  TrackBar1Position: integer;
-  icnt: integer;
-  host: string = 'http://luckygeck.tut.su';
-  url: string = 'http://luckygeck.tut.su/info.txt';
-
-  Gamelog: tStringList;
-  questions_asked: integer;
-  //  time_writequestion:integer;
+procedure SendMCICommand(Cmd: string);
 
 implementation
 
-uses frChat, frGLog, frResult;
+uses frAnsCheck, RichEdit;
 
 {$R *.dfm}
 
-procedure TForm1.SetTimers;
+procedure SendMCICommand(Cmd: string);
 var
-  i: integer;
+  RetVal: Integer;
+  ErrMsg: array[0..254] of char;
 begin
-  i := Form3.TrackBar1.Position;
-  tmUsrList.Interval := i;
-  checkinet.Interval := i;
-  game_timer.Interval := i;
-  Form3.Label1.Caption := inttostr(i) + ' msc';
-end;
-
-procedure TForm1.StartGame;
-var
-  s: TStringList;
-  e: string;
-begin
-  if not client.Connected then
-    exit;
-  client.SendCmd('<start_game> ' + 'OK');
-  s := TStringList.Create;
-  repeat
-    e := client.ReadLn;
-    s.Add(e);
-  until e = '.';
-  e := b64de.DecodeString(s[0]);
-  s.Text := e;
-  if (pos('Вопрос', s[0]) > 0) then
+  RetVal := mciSendString(PChar(Cmd), nil, 0, 0);
+  if RetVal <> 0 then
   begin
-    s.Delete(0);
-    //  FlashWindow(Application.Handle, True);
-
-    beep;
-    Memo1.Lines.Text := s.Text;
-    inc(questions_asked);
-    GameLog.Add('Вопрос №' + inttostr(questions_asked));
-    GameLog.Add(s.Text);
-    GameLog.Add('');
-    if length(s.Text) > 50 then
-      e := copy(s.text, 0, 50) + '...'
-    else
-      e := s.Text;
-
-    AdvAlertWindow1.AlertMessages.Clear;
-    advalertwindow1.AlertMessages.Add.Text.Add('ВНИМАНИЕ, ВОПРОС!' + #13 + e);
-    advalertwindow1.Show;
-    vspliv.Enabled := true;
-    playsound(PChar(ExtractFileDir(Application.Exename) +
-      '\data\sounds\Vopros.wav'), 0, SND_ASYNC);
-
-    game_timer.Enabled := false;
-    Form1.Caption := 'Своя Игра - Inet - [Думаем ещё ' + inttostr(time_minute) +
-      ' сек ]';
-    time_question := 0;
-    time_sec.Enabled := true;
-    button2.Enabled := false;
-    enableedits;
+    {get message for returned value}
+    mciGetErrorString(RetVal, ErrMsg, 255);
+    MessageDlg(StrPas(ErrMsg), mtError, [mbOK], 0);
   end;
 end;
 
-procedure TForm1.Report(s: string);
+procedure TForm1.DrawSmile(smile: string; path: string; ARow: integer);
+var
+  str2: string;
+  SS: TStringStream;
+  MyBMP: TBITMAP;
+  i: integer;
 begin
-  Label5.Caption := s;
+  smile := trim(smile);
+  str2 := memo2.Lines.Strings[Arow];
+  with memo2 do
+  begin
+    if fAnsiPos(smile, str2, 1) > 0 then
+    begin
+      i := 0;
+      while fAnsiPos(smile, str2, 1) > 0 do
+      begin
+        MyBMP := TBitMap.Create;
+        MyBmp.LoadFromFile(ExtractFileDir(Application.ExeName) + '\data\smiles\' + path + '.bmp');
+        SS := TStringStream.Create(BitmapToRTF(MyBMP));
+        //showmessage(ss.DataString);
+    //------------
+       // showmessage(inttostr(fAnsiPos(':)', str2, 1)));
+        SelStart := SendMessage(memo2.Handle, EM_LINEINDEX, ARow, 0) + fAnsiPos(smile, str2, 1) + i - 1;
+        str2 := copy(str2, 0, fAnsiPos(smile, str2, 1) - 1) + copy(str2, fAnsiPos(smile, str2, 1) + length(smile), length(str2));
+        i := i + 1;
+        SelLength := length(smile);
+        SelText := '';
+    //------------
+        PutRTFSelection(memo2, ss);
+        SelLength := 0;
+    //------------
+        ss.Free;
+        MyBmp.Free;
+      end;
+    end;
+  end;
 end;
 
-function TForm1.RegAndLogin(login: string): byte;
+procedure TForm1.PutRTFSelection(RichEdit: TRxRichEdit; SourceStream: TStream);
 var
-  s: TStringList;
-  e: string;
+  EditStream: TEditStream;
 begin
-  if not client.Connected then
-    exit;
-  client.SendCmd('<login> ' + b64en.Encode(login));
-
-  //---//
-  s := TStringlIst.Create;
-  repeat
-    e := client.ReadLn;
-    s.Add(e);
-  until e = '.';
-  e := s[0];
-  s.Free;
-  //---//
-
-  if b64de.DecodeString(e) = 'OK' then
+  with EditStream do
   begin
-    logged := true;
-    result := 0;
-  end
-  else if b64de.DecodeString(e) = 'ErrorLogin' then
+    dwCookie := Longint(SourceStream);
+    dwError := 0;
+    pfnCallback := EditStreamInCallBack;
+  end;
+  RichEdit.Perform(EM_STREAMIN, SF_RTF or SFF_SELECTION, Longint(@EditStream));
+end;
+
+procedure TForm1.KickUser(name: string);
+var
+  i, k: integer;
+begin
+  k := -1;
+  for i := 0 to users.Count - 1 do
   begin
-    ShowMessage('Your login is alredy occupied!' + #13 + 'Change it!');
-    logged := false;
-    result := 1;
-    client.Disconnect;
+    if TClient(Users[i]).Name = Name then
+    begin
+      k := i;
+      break;
+    end;
+  end;
+  if k >= 0 then
+  begin
+    TClient(Users[k]).Status := InputBox('Введите причину', 'Введите причину, по которой вы кикаете человка:', '-');
+  end;
+  PublishMsg('Admin', TClient(Users[k]).Name + ' was kicked out from game! Reason: "' + TClient(Users[k]).Status + '"', now);
+end;
+
+procedure TForm1.DoAnswers;
+begin
+  if (usersQuestionsSent = Users.Count) and not (wait1.Running) then
+  begin
+    wait1.Tag := 0;
+    wait1.Caption := '70';
+    wait1.Start;
+  end;
+  if (UsersAnsSent >= Users.Count) then
+  begin
+    //Form3 := TForm3.Create(Application);
+    timer2.Enabled := false;
+    Form3.RefreshList;
+    Form3.ShowModal;
+    panel1.Caption := '0/0/0';
+    UsersAnsSent := 0;
+    UsersQuestionsSent := 0;
+    wait1.Caption := '70';
+    wait1.Stop;
+   // Form3.Free;
+   // UnBlockQuestions;
+  end;
+end;
+
+procedure TForm1.BlockQuestions;
+begin
+  BitBtn1.Enabled := false;
+  BitBtn2.Enabled := false;
+  Button7.Enabled := false;
+ // Button4.Enabled := false;
+  //Button5.Enabled := false;
+end;
+
+procedure TForm1.UnBlockQuestions;
+begin
+  BitBtn1.Enabled := true;
+  BitBtn2.Enabled := true;
+  Button7.Enabled := true;
+ // Button4.Enabled := true;
+ // Button5.Enabled := true;
+end;
+
+procedure TForm1.ReDrawQuestion(i: integer);
+begin
+  if questions.Count > i then
+  begin
+    GroupBox1.Caption := 'Вопрос №' + inttostr(i + 1);
+    Memo1.Text := b64de.DecodeString(questions[i]);
+    qnum := i;
   end
   else
   begin
-    ShowMessage('Something wrong on the server! Maybe, there are some technical problems on it.'
-      + #13 + 'For more info contact server''s administrator!');
-    logged := false;
-    result := 2;
+    GroupBox1.Caption := 'Вопрос';
+    Memo1.Text := '';
   end;
 end;
 
-procedure TForm1.ClearAll;
+procedure TForm1.ReDrawUsersList;
+var
+  x: integer;
 begin
-  Edit1.Text := '';
-  Edit2.Text := '';
-  Edit3.Text := '';
-  memo1.Text := '';
+  ListBox1.Items.Clear;
+  for x := Users.Count downto 1 do
+  begin
+    ListBox1.Items.Add(TClient(Users[x - 1]).Name);
+  end;
 end;
 
-procedure TForm1.DisableAll;
+procedure TForm1.col(ARow: Integer; bcolor: Tcolor; AColor: TColor);
 begin
-  Edit1.Enabled := false;
-  Edit2.Enabled := false;
-  Edit3.Enabled := false;
-  Form3.Button1.Enabled := false;
-  Button3.Enabled := false;
-  Button7.Enabled := false;
+  with memo2 do
+  begin
+{:)}DrawSmile(':)', 'smile', ARow);
+{А}//DrawSmile('А', 'A', ARow);
+{Б}//DrawSmile('Б', 'Б', ARow);
+  end;
+
+  with (memo2) do
+  begin
+    SelStart := SendMessage(Handle, EM_LINEINDEX, ARow, 0);
+    SelLength := length(Lines[Arow]);
+    SelAttributes.BackColor := Bcolor;
+    SelAttributes.Color := Acolor;
+    SelAttributes.Style := SelAttributes.Style + [fsBold]; //fsBold, fsItalic, fsUnderline, fsStrikeOut
+    SelLength := 0;
+
+  {   if length(Lines[Arow-1])>1 then begin
+     if Lines[Arow-1][1]='{' then
+      begin
+       if (Get_Priv_Nick(Lines[Arow-1])=Form1.Edit2.Text) or (Get_Priv_MyNick(Lines[Arow-1])=Form1.Edit2.Text)
+        then begin
+              SelStart := SendMessage(Handle, EM_LINEINDEX, ARow - 1, 0);
+              SelLength := Length(Lines[ARow - 1]);
+              Memo1.SelAttributes.BackColor:=$00E0E2E2;
+              Memo1.SelAttributes.Color:=clBlack;
+              Memo1.SelAttributes.Style:=[fsBold];
+              SelLength := 0;
+             end   }
+  end;
 end;
 
-procedure TForm1.DisableEdits;
+procedure TForm1.PrivateMsg(forwho, name, say: string; time: TDateTime);
+var
+  s: string;
+  i, j: integer;
 begin
-  Edit1.Enabled := false;
-  Edit2.Enabled := false;
-  Edit3.Enabled := false;
-  Button5.Enabled := false;
+if trim(say)='' then exit;
+  datetimetostring(s, 'd.m.yyyy h:nn:ss', time);
+  for i := 0 to users.Count - 1 do
+  begin
+    if TClient(Users[i]).Name = forwho then
+    begin
+      if TClient(Users[i]).cache <> '' then
+        TClient(Users[i]).cache := TClient(Users[i]).cache + #13;
+      TClient(Users[i]).cache := TClient(Users[i]).cache + b64en.Encode(b64en.Encode('<!Private!> ' + name + ' (' + s + '):') + #13 +
+        b64en.Encode(say));
+    end;
+  end;
+  if name = 'Admin' then
+  begin
+    Memo2.Lines.Add(name + ' (' + s + '):');
+
+    I := memo2.Lines.Count;
+    Memo2.Lines.Add(say);
+    Memo2.Lines.Add('');
+
+    for j := i - 1 to memo2.Lines.Count - 2 do
+    begin
+      col(j, clMoneyGreen, clBlack);
+    end;
+    {if name = 'Admin' then }
+    col(I - 1, clgreen, clRed);
+    //else col(i - 1, clwhite, clRed);
+       // memo2.AllowObjects := true;
+    Memo2.Perform(WM_VSCROLL, SB_BOTTOM, 0);
+  end;
 end;
 
-procedure TForm1.EnableAll;
+procedure TForm1.PublishMsg(name, say: string; time: TDateTime);
+var
+  s: string;
+  i, j: integer;
+//  pict: TBitmap;
 begin
-  Form3.Button1.Enabled := true;
-  Button3.Enabled := true;
-  Button7.Enabled := true;
+if trim(say)='' then exit;
+//  pict := TBitmAp.Create;
+//  pict.LoadFromFile('O:\1.bmp');
+  datetimetostring(s, 'd.m.yyyy h:nn:ss', time);
+  for i := 0 to users.Count - 1 do
+  begin
+    if TClient(Users[i]).Name <> name then
+    begin
+      if TClient(Users[i]).cache <> '' then
+        TClient(Users[i]).cache := TClient(Users[i]).cache + #13;
+      TClient(Users[i]).cache := TClient(Users[i]).cache + b64en.Encode(b64en.Encode(name + ' (' + s + '):') + #13 +
+        b64en.Encode(say));
+    end;
+  end;
+
+  Memo2.Lines.Add(name + ' (' + s + '):');
+
+  I := memo2.Lines.Count;
+  Memo2.Lines.Add(say);
+  Memo2.Lines.Add('');
+
+  for j := i - 1 to memo2.Lines.Count - 2 do
+  begin
+    col(j, clMoneyGreen, clBlack);
+  end;
+  if name = 'Admin' then col(I - 1, clgreen, clRed)
+  else col(i - 1, clwhite, clRed);
+
+
+ // memo2.AllowObjects := true;
+  Memo2.Perform(WM_VSCROLL, SB_BOTTOM, 0);
+ // pict.Free;
 end;
 
-procedure TForm1.EnableEdits;
+procedure TForm1.ReDrawComInfo;
+var
+  j, x: integer;
 begin
-  Edit1.Enabled := true;
-  Edit2.Enabled := true;
-  Edit3.Enabled := true;
-  Button5.Enabled := true;
+  j := Users.Count;
+  ComInfo.ColCount := 2;
+  ComInfo.RowCount := j + 1;
+  with ComInfo do
+  begin
+    Cells[0, 0] := 'Имя';
+    Cells[1, 0] := 'Очки';
+    for x := j downto 1 do
+    begin
+      cells[0, x] := TClient(Users[x - 1]).Name;
+      cells[1, x] := inttostr(TClient(Users[x - 1]).points);
+//      RoWidths[x] := 20;
+    end;
+    if j > 0 then ComINfo.FixedRows := 1
+    else ComINfo.FixedRows := 0;
+  end;
+end;
+
+procedure TForm1.ReDrawGreed;
+var
+  i, j, x, y: integer;
+begin
+  i := questions.Count;
+  j := Users.Count;
+  FullResult.ColCount := i + 1;
+  FullResult.RowCount := j + 1;
+  with FullResult do
+  begin
+    Cells[0, 0] := 'Имя\№';
+    for x := i downto 1 do
+    begin
+      cells[x, 0] := inttostr(x);
+      ColWidths[x] := 20;
+    end;
+    for y := j downto 1 do
+    begin
+      cells[0, y] := TClient(Users[y - 1]).Name;
+      for x := 1 to TClient(Users[y - 1]).p_answers.Count do
+      begin
+        cells[x, y] := TClient(Users[y - 1]).p_answers[x - 1];
+      end;
+    end;
+    if j > 0 then FixedRows := 1
+    else FixedRows := 0;
+  end;
+end;
+
+procedure TForm1.FillDbInfo;
+begin
+  label5.Caption := inttostr(questions.Count);
+  Edit3.Text := trim(db);
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-  Form2 := TForm2.Create(Application);
-  Form2.Edit1.Text := MyName;
-  Form2.Edit2.Text := ServerIp;
-  Form2.ShowModal;
-  Form2.Free;
+  if server.Active then
+  begin
+    try
+      server.Active := false;
+      Button1.Caption := 'Start';
+    except
+      ShowMessage('Ошибка отключения сервера!' + #13 + 'Пользователи будут недовольны!!! =(');
+    end
+  end
+  else
+  begin
+    try
+      server.DefaultPort := strtoint(Edit1.Text);
+      Server.Active := true;
+      Button1.Caption := 'Stop';
+    except
+      ShowMessage('Не могу активировать сервер - проблемы со связью или занят порт!' + #13 + 'P.S. Смените порт в настройках...');
+    end;
+  end;
+  users.Clear;
+end;
+
+
+procedure TForm1.Button3Click(Sender: TObject);
+var
+  new: string;
+begin
+  http.Host := host;
+  try
+    new := http.Get(url + '?port=' + Trim(Edit1.Text));
+    new := copy(new, 0, pos('<!', new) - 1);
+      {'http://localhost:8080/programlevap.narod/newvers.info'}
+    if (new = 'Ошибка1') or (new = 'Ошибка2') then SHowMessage('Сайт не работает или работает неправильно!' + #13 + 'Игра не будет работать!')
+    else
+    begin
+      Edit2.Text := new;
+      ShowMessage('Всё ОК! Можно запускать сервер!');
+    end;
+
+  except
+    showmessage('    Не могу подсоедениться к интернету!' + #13 +
+      '=Проверьте своё соединение с Интернетом!!!=');
+  end;
+  try
+    http.Disconnect
+  except
+  end;
+
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  SendMCICommand('open waveaudio shareable');
+
+  UsersQuestionsSent := 0;
+  GameOnline := false;
+  questions := TStringList.Create;
+  users := Tlist.Create;
+  qnum := 0;
+  asked := 0;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  questions.Free;
+  users.Free;
+
+  SendMCICommand('close waveaudio');
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+begin
+//  Form2 := TForm2.Create(Application);
+  Form2.Show; //Modal;
+//  Form2.Free;
+{  if asked > questions.Count then
+  begin
+    asked := 0;
+    Form1.Edit4.Text := '0';
+  end;    }
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+begin
+  if od.Execute then
+  begin
+    questions.LoadFromFile(od.FileName);
+    db := od.FileName;
+    filldbinfo;
+    ReDrawQuestion(0);
+    if asked > questions.Count then
+    begin
+      asked := 0;
+      Edit4.Text := '0';
+    end;
+  end;
+end;
+
+procedure TForm1.FullResultMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+begin
+  ReDrawGreed;
+end;
+
+procedure TForm1.serverLoginCommand(ASender: TIdCommand);
+var
+  s: string;
+  i: integer;
+  b: boolean;
+  usr: TClient;
+begin
+  s := ASender.Params[0];
+  s := b64de.DecodeString(s);
+  b := true;
+  for i := 0 to users.Count - 1 do
+  begin
+    if TClient(users.Items[i]).Name = s then
+      b := false;
+  end;
+  if b then
+  begin
+    usr := TClient.Create;
+    usr.Name := s;
+    usr.answers := TStringList.Create;
+    usr.p_answers := TStringList.Create;
+    usr.points := 0;
+    usr.Thread := ASender.Thread;
+    usr.Status := 'OK';
+    usr.cache := '';
+    usr.b := false; ;
+    ASender.Thread.Data := usr;
+    users.Add(usr);
+    ASender.Response.Clear;
+    ASender.Response.Add('OK');
+    ASender.Response.Add(b64en.Encode('OK'));
+    ASender.SendReply;
+  end
+  else
+  begin
+    ASender.Response.Clear;
+    ASender.Response.Add('ara');
+    ASender.Response.Add(b64en.Encode('ErrorLogin'));
+    ASender.SendReply;
+ //   ASender.Thread.TerminateAndWaitFor;
+  end;
+
+end;
+
+
+procedure TForm1.serverreadyCommand(ASender: TIdCommand);
+var
+  s: TStringList;
+begin
+  s := TStringList.Create;
+
+  //INFO for CLIENT
+  s.Add('Сервер v0.07 - "ЧГК Online"');
+  s.Add('Пользователей: ' + inttostr(Users.Count));
+  s.Add('Вопросов в базе: ' + inttostr(questions.Count));
+  s.Add('Вопросов сыграно: ' + inttostr(asked));
+  //END;
+
+  ASender.Response.Text := '';
+  ASender.Response.Add('ok');
+  ASender.Response.Add(b64en.Encode(TClient(ASender.Thread.Data).Status));
+  ASender.Response.Add(b64en.Encode(s.Text));
+  if TClient(ASender.Thread.Data).cache <> '' then
+  begin
+    ASender.Response.Add(b64en.Encode(TClient(ASender.Thread.Data).cache));
+    TClient(ASender.Thread.Data).cache := '';
+  end;
+  ASender.SendReply;
+  s.Free;
+end;
+
+procedure TForm1.ComInfoMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+begin
+  ReDrawComInfo;
+end;
+
+procedure TForm1.serverDisconnect(AThread: TIdPeerThread);
+var
+  I: integer;
+  b: boolean;
+begin
+  if AThread.Data <> nil then
+  begin
+    b := false;
+    for i := 0 to users.Count - 1 do
+    begin
+      if TClient(users[i]).Name = TClient(AThread.Data).Name then
+      begin
+        b := true;
+        break;
+      end;
+    end;
+    if b then
+    begin
+  //  AThread.Data.Free;
+      TClient(Users[i]).answers.Free;
+      TClient(Users[i]).p_answers.Free;
+      users.Delete(i);
+    end;
+  end;
+ // AThread.Stop;
+end;
+
+procedure TForm1.servermsg_sendCommand(ASender: TIdCommand);
+var
+  s: string;
+begin
+  SendMCICommand('play "' + ExtractFileDir(application.exename) + '\data\sounds\msgGet.wav"');
+
+  s := b64de.DecodeString(ASender.Params[0]);
+  ASender.Response.Clear;
+  ASender.Response.Add('OK');
+  ASender.Response.Add(b64en.Encode('OK'));
+  ASender.SendReply;
+
+  onesec_name := TClient(ASender.Thread.Data).Name;
+  onesec_say := s;
+  onesec_time := now;
+  onemsc.Enabled := true;
+end;
+
+procedure TForm1.serverstart_gameCommand(ASender: TIdCommand);
+begin
+  ASender.Response.Text := 'asdf';
+  if TClient(ASender.Thread.Data).b then
+  begin
+    TClient(ASender.Thread.Data).b := false;
+    inc(UsersQuestionsSent);
+    Panel1.Caption := inttostr(UsersAnsSent) + '/' + inttostr(UsersQuestionsSent) + '/' + inttostr(Users.Count);
+    ASender.Response.Add(b64en.Encode('Вопрос №' + inttostr(qnum + 1) + #13) + questions[qnum]);
+  end
+  else
+    ASender.Response.Add(b64en.Encode('OK'));
+  ASender.SendReply;
+end;
+
+procedure TForm1.Button6Click(Sender: TObject);
+var
+  forwho: string;
+begin
+  if pos('<private to=', memo3.Text) = 1 then
+  begin
+    forwho := copy(memo3.Text, 13, pos('>', memo3.Text) - 13);
+    PrivateMsg(forwho, 'Admin', copy(memo3.Text, pos('>', memo3.Text)+1, length(memo3.text)) ,now);
+  end
+  else
+  begin
+    PublishMSG('Admin', memo3.Text, now);
+  end;
+//TIdPeerThread(TClient(users[0]).Thread).Connection.Write('Privet');
+  memo3.Text := '';
+  SendMCICommand('play "' + ExtractFileDir(application.exename) + '\data\sounds\msgSent.wav"');
+end;
+
+
+
+procedure TForm1.BitBtn2Click(Sender: TObject);
+begin
+  if BitBtn2.Enabled then
+  begin
+    if questions.Count > qnum + 1 then
+      ReDrawQuestion(qnum + 1)
+    else
+      ReDrawQuestion(0);
+  end;
+end;
+
+procedure TForm1.BitBtn1Click(Sender: TObject);
+begin
+  if BitBtn1.Enabled then
+  begin
+    if questions.Count > 0 then
+    begin
+      if qnum > 0 then
+        ReDrawQuestion(qnum - 1)
+      else
+        ReDrawQuestion(questions.Count - 1);
+    end
+    else
+      ReDrawQuestion(0);
+  end;
+end;
+
+procedure TForm1.Button7Click(Sender: TObject);
+var
+  i: integer;
+begin
+  if (users.Count > 0) and (questions.Count > 0) then
+  begin
+    if Button7.Enabled then
+    begin
+      UsersQuestionsSent := 0;
+      UsersAnsSent := 0;
+      Panel1.Caption := '0/0/' + inttostr(Users.Count);
+      //GameOnline := true;
+      timer2.Enabled := true;
+      BlockQuestions;
+      for i := 0 to Users.Count - 1 do
+      begin
+        TClient(Users[i]).b := true;
+      end;
+      inc(asked);
+      Edit4.Text := inttostr(asked);
+    end;
+  end;
+end;
+
+procedure TForm1.serverans_sendCommand(ASender: TIdCommand);
+begin
+  TClient(ASender.Thread.Data).answers.Add(b64en.Encode(Asender.Params[0] + #13 + '0' + #13 + '0' + #13 + '0'));
+ // DoAnswers;
+ //ShowMessage('OK');
+  UsersAnsSent := UsersAnsSent + 1;
+  Panel1.Caption := inttostr(UsersAnsSent) + '/' + inttostr(UsersQuestionsSent) + '/' + inttostr(Users.Count);
+  ASender.Response.Clear;
+  ASender.Response.Add(b64en.Encode('OK'));
+  ASender.Response.Add(b64en.Encode('OK'));
+  ASender.SendReply;
+  if UsersAnsSent = Users.Count then
+  begin
+    //GameOnline := false;
+    UnBlockQuestions;
+  end;
+end;
+
+procedure TForm1.Timer2Timer(Sender: TObject);
+begin
+//Checking if All answers are here
+  DoAnswers;
+  Application.ProcessMessages;
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+//Upd Greeds Info
+  ReDrawGreed;
+  Application.ProcessMessages;
+
+  ReDrawComInfo;
+  Application.ProcessMessages;
+
+  ReDrawUsersList;
+  Application.ProcessMessages;
+end;
+
+procedure TForm1.serverusr_listCommand(ASender: TIdCommand);
+var
+  s: TStringlist;
+  i: integer;
+begin
+  ASender.Response.Clear;
+  s := TStringlist.Create;
+  for i := 0 to Users.Count - 1 do
+  begin
+    s.Add(TClient(Users[i]).Name);
+  end;
+  asender.Response.Add('OKOK');
+  aSender.Response.Add(b64en.Encode(s.Text));
+  s.Free;
+  ASender.SendReply;
+end;
+
+procedure TForm1.N1Click(Sender: TObject);
+begin
+  Memo2.Clear;
+end;
+
+procedure TForm1.N2Click(Sender: TObject);
+begin
+  Button6.Click;
+end;
+
+procedure TForm1.serverConnect(AThread: TIdPeerThread);
+begin
+  if gameonline then
+  begin
+    AThread.Connection.WriteLn('GameOnline');
+  end
+  else
+    AThread.Connection.WriteLn('GameOffline');
+end;
+
+procedure TForm1.CheckBox1Click(Sender: TObject);
+begin
+  GameOnline := Checkbox1.Checked;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 var
   i: integer;
-  s: string;
 begin
-  i := 0;
-  if client.Connected then
-  begin
-    try
-      client.Disconnect;
-      button2.Caption := 'Connect';
-      logged := false;
-      ClearAll;
-      DisableAll;
-      disableedits;
-    except
+  try
+    begin
+      i := strtoint(Edit4.Text);
+      if (i >= 0) and (i <= questions.Count) then
       begin
-        button2.Caption := 'Connect';
-        ClearAll;
-        logged := false;
-        DisableAll;
-        disableedits;
-        MessageBox(Application.Handle, PChar('Error while disconnecting!'),
-          PChar('Disconnect error!'), MB_ICONSTOP);
-      end;
-    end;
-  end
-  else
-  begin
-    try
-      client.Host := copy(ServerIP, 0, pos(':', ServerIP) - 1);
-      client.Port := strtoint(copy(ServerIP, pos(':', ServerIP) + 1,
-        length(ServerIP)));
-      client.Connect;
-      s := client.ReadLn;
-      if s = 'GameOnline' then
-      begin
-        logged := false;
-        client.Disconnect;
-        ShowMessage('There is a game online, so you cannot enter the Server.' +
-          #13 + ' Try later ');
+        asked := i;
+        ShowMessage('Changed OK!');
       end
       else
       begin
-        i := RegAndLogin(MyName);
-        button2.Caption := 'Disconnect';
-        ClearAll;
-        logged := true;
-        EnableAll;
-        disableedits;
-        Application.ProcessMessages;
-        button3.Click;
+        Edit4.Text := inttostr(asked);
+        ShowMessage('Error!');
       end
-    except
-      begin
-        button2.Caption := 'Connect';
-        logged := false;
-        ClearAll;
-        DisableAll;
-        disableedits;
-        MessageBox(Application.Handle, PChar('Error while connecting!' + #13 +
-          'Check your internet conncetion!'), PChar('Connect error!'),
-          MB_ICONSTOP);
-      end
-    end;
-    if i > 0 then
+    end
+  except
     begin
-      DisableAll;
-      disableedits;
-      logged := false;
-      button2.Caption := 'Connect';
+      beep;
+      Edit4.Text := inttostr(asked);
+      ShowMessage('Error!');
     end;
   end;
 end;
 
-procedure TForm1.Button3Click(Sender: TObject);
+procedure TForm1.ListBox1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
 var
-  e: string;
-  s, s1: TStringList;
-  i: integer;
+  Point: TPoint;
+  I: Integer;
+const
+  NoHit = -1;
 begin
-  if not logged then
-    exit;
-  s := TStringList.Create;
+  if Button = mbRight then
+  begin
+    // Если нажата правая кнопка мыши, выяснить, не попал ли курсор
+    // на элемент списка UserList
+    Point.X := x;
+    Point.Y := y;
+    I := ListBox1.ItemAtPos(Point, True);
+    if not (i = NoHit) then
+    begin
+      // курсор попал на элемент списка с номером i
+      // принудительно назначаем его текущим, т.е. отмеченным
+      ListBox1.ItemIndex := I;
+      popupmenu2.Tag := i;
+      TListBox(Sender).PopUpMenu.AutoPopup := True;
+    end
+    else // курсор промахнулся , нет смысла активизировать меню
+      TListBox(Sender).PopUpMenu.AutoPopup := False;
+  end;
+end;
+
+procedure TForm1.kick1Click(Sender: TObject);
+begin
+  kickUser(listbox1.Items[popupmenu2.tag]);
+end;
+
+procedure TForm1.Dcnfdbnm1Click(Sender: TObject);
+begin
+  memo3.PasteFromClipboard;
+end;
+
+procedure TForm1.N5Click(Sender: TObject);
+begin
+  memo3.CopyToClipboard;
+end;
+
+procedure TForm1.N6Click(Sender: TObject);
+begin
+  memo3.CutToClipboard;
+end;
+
+procedure TForm1.serverresultsCommand(ASender: TIdCommand);
+var
+  i: integer;
+  max, k_max: integer;
+  s1, s2: TStringList;
+begin
+  max := -1;
+  k_max := -1;
+  ASender.Response.Text := 'OK';
   s1 := TStringList.Create;
-  client.SendCmd('<ready> ' + b64en.Encode('OK'));
-  repeat
-    e := client.ReadLn;
-    s.Add(e);
-  until e = '.';
-  if b64de.DecodeString(s[0]) = 'OK' then
+  s2 := TStringList.Create;
+  for i := 0 to Users.Count - 1 do
   begin
-    LAbel5.caption := b64de.DecodeString(s[1]);
-    if s.Count > 3 then
-    begin
-      s.Text := b64de.DecodeString(s[2]);
-      for i := 0 to s.Count - 1 do
-      begin
-        s1.Text := b64de.DecodeString(s[i]);
-        Form3.onemsc.Enabled := true;
-        Form3.LogAdd(b64de.DecodeString(s1[0]), b64de.DecodeString(s1[1]));
-        Form3.Memo1.Lines.Add('');
-      end;
-
-    end;
-  end
-  else
-  begin
-    button2.Click;
-    ShowMessage('You were kicked from the server.' + #13 + 'Comments: ' +
-      b64de.DecodeString(s[0]));
+    s1.Add(TClient(Users[i]).Name);
+    s2.Add(inttostr(TClient(Users[i]).points));
   end;
-  s.Free;
+
+  repeat
+    for i := 0 to s2.Count - 1 do
+    begin
+      if strtoint(s2[i]) > max then
+      begin
+        max := strtoint(s2[i]);
+        k_max := i;
+      end;
+    end;
+    Asender.Response.Add(s1[k_max] + #9 + s2[k_max]);
+    s1.Delete(k_max);
+    s2.Delete(k_max);
+    max := -1;
+    k_max := -1;
+  until s1.Count < 1;
+  ASender.SendReply;
   s1.Free;
-  Application.ProcessMessages;
+  s2.Free;
 end;
 
-procedure TForm1.FormActivate(Sender: TObject);
+procedure TForm1.Wait1Timeout(Sender: TObject);
 begin
-  Form1.Label6.Caption := 'Твоё имя: ' + MyName + #13 + 'Адрес сервера: ' +
-    serverip;
-end;
-
-procedure TForm1.Button4Click(Sender: TObject);
-begin
-  if Form3.Showing then
-    Form3.Hide
-  else
-    Form3.Show;
-end;
-
-procedure TForm1.clientDisconnected(Sender: TObject);
-begin
-  button2.Caption := 'Connect';
-  ClearAll;
-  DisableAll;
-end;
-
-procedure TForm1.FormCreate(Sender: TObject);
-var
-  i: integer;
-begin
-  KeyPreview := true;
-  icnt := 1;
-  questions_asked := 0;
-  GameLog := TStringlist.Create;
-  time_question := 0;
-  //time_writequestion:=0;
-  ini_path := Extractfiledir(Application.ExeName) + ini_path;
-  Ini := TiniFile.Create(ini_path);
-  MyName := Ini.ReadString('Personal', 'name', 'My Name');
-  ServerIP := Ini.ReadString('Network', 'serverip', '');
-  host := Ini.ReadString('Network', 'host', 'http://www.chgk-online.tu2.ru/');
-  url := Ini.ReadString('Network', 'url', 'info.txt');
-  url := host + url;
-  try
-    begin
-      i := Ini.ReadInteger('Personal', 'refresh', 10000);
-      if (i > 10000) or (i < 1) then
-        i := 10000;
-      TrackBar1Position := i;
-    end
-  except
-    TrackBar1Position := 10000;
-  end;
-  Ini.Free;
-end;
-
-procedure TForm1.FormDestroy(Sender: TObject);
-begin
-  Ini := TiniFile.Create(ini_path);
-  Ini.WriteString('Personal', 'name', MyName);
-  Ini.WriteString('Network', 'serverip', ServerIP);
-  //Ini.WriteString('Network', 'host', host);
-  //Ini.WriteString('Network', 'url', url);
-  Ini.WriteInteger('Personal', 'refresh', TrackBar1Position);
-  Ini.Free;
-  GameLog.Free;
-end;
-
-procedure TForm1.game_timerTimer(Sender: TObject);
-begin
-  try
-    startgame;
-  except
-    Showmessage('ERROR!');
-    Button2.Click;
-  end;
-  Application.ProcessMessages;
-end;
-
-procedure TForm1.time_secTimer(Sender: TObject);
-var
-  s: TStringList;
-  e: string;
-begin
-  try
-    begin
-      inc(time_question);
-      if time_question <= time_minute then
-      begin
-        Form1.Caption := 'Своя Игра - Inet - [Думаем ещё ' + inttostr(time_minute
-          - time_question) + ' сек ]';
-
-        if time_question = time_minute then
-          playsound(PChar(ExtractFileDir(Application.Exename) +
-            '\data\sounds\Sig1.wav'), 0, SND_ASYNC);
-      end
-      else if (time_question >= time_minute) and (time_question < time_write +
-        time_minute) then
-      begin
-
-        Form1.Caption := 'Своя Игра - Inet - [Пишем и сдаём через ' +
-          inttostr(time_write + time_minute - time_question) + ' сек ]';
-      end
-      else
-      begin
-        playsound(PChar(ExtractFileDir(Application.Exename) +
-          '\data\sounds\SigM.wav'), 0, SND_ASYNC);
-        Form1.Caption := 'Своя Игра - Inet';
-        client.SendCmd('<ans_send> ' + b64en.Encode(b64en.Encode('1)' +
-          Edit1.Text) + #13 + b64en.Encode('2)' + Edit2.Text) + #13 +
-          b64en.Encode('3)' + Edit3.Text)));
-        //---//
-        time_sec.Enabled := false;
-
-        GameLog.Add('Ваши ответы:');
-        GameLog.Add('1)' + Edit1.Text);
-        GameLog.Add('2)' + Edit2.Text);
-        GameLog.Add('3)' + Edit3.Text);
-        GameLog.Add('');
-
-        s := TStringlIst.Create;
-        repeat
-          e := client.ReadLn;
-          s.Add(e);
-        until e = '.';
-        e := s[0];
-
-        //---//
-        if e <> b64en.Encode('OK') then
-          ShowMessage('Что-то пошло не так и ваши ответы не обработались сервером!!!'
-            + #13 + 'Сообщите админу!!!');
-
-        client.SendCmd('<right_ans> OK');
-        s.Clear;
-        repeat
-          e := client.ReadLn;
-          s.Add(e);
-        until e = '.';
-        e := s[0];
-        s.Free;
-
-        GameLog.Add(b64de.DecodeString(e));
-        GameLog.Add('');
-        GameLog.Add('');
-        playsound(PChar(ExtractFileDir(Application.ExeName) +
-          '\data\sounds\RightAns.wav'), 0, SND_ASYNC);
-        ShowMessage(b64de.DecodeString(e));
-        Edit1.Text := '';
-        Edit2.Text := '';
-        Edit3.Text := '';
-        memo1.Text := '';
-        disableedits;
-        game_timer.Enabled := true;
-        button2.Enabled := true;
-      end;
-    end
-  except
-    ShowMessage('Fatal Error!!!' + #13 + 'Closing');
-    game_timer.Enabled := true;
-    button2.Enabled := true;
-    time_sec.Enabled := false;
-    Close;
-  end;
-  Application.ProcessMessages;
-end;
-
-procedure TForm1.tmUsrListTimer(Sender: TObject);
-var
-  s: TStringList;
-  e: string;
-begin
-  if not logged then
-    exit;
-  client.SendCmd('<usr_list>  OK');
-  s := TStringlIst.Create;
-  repeat
-    e := client.ReadLn;
-    s.Add(e);
-  until e = '.';
-  s.Text := b64de.DecodeString(s[0]);
-  //---//
-  Form3.list.Items.Text := s.Text;
-  s.Free;
-  Application.ProcessMessages;
-end;
-
-procedure TForm1.VsplivTimer(Sender: TObject);
-begin
-  vspliv.Enabled := false;
-  AdvAlertWindow1.Hide;
-  AdvAlertWindow1.AlertMessages.Clear;
-  Application.ProcessMessages;
-end;
-
-procedure TForm1.Button5Click(Sender: TObject);
-var
-  s: TStringList;
-  e: string;
-begin
-  playsound(PChar(ExtractFileDir(Application.Exename) +
-    '\data\sounds\SigM.wav'), 0, SND_ASYNC);
-  Form1.Caption := 'Своя Игра - Inet';
-  client.SendCmd('<ans_send> ' + b64en.Encode(b64en.Encode('1)' +
-    Edit1.Text) + #13 + b64en.Encode('2)' + Edit2.Text) + #13 +
-    b64en.Encode('3)' + Edit3.Text)));
-  //---//
-  time_sec.Enabled := false;
-  GameLog.Add('Ваши ответы:');
-  GameLog.Add('1)' + Edit1.Text);
-  GameLog.Add('2)' + Edit2.Text);
-  GameLog.Add('3)' + Edit3.Text);
-  GameLog.Add('');
-  s := TStringlIst.Create;
-  repeat
-    e := client.ReadLn;
-    s.Add(e);
-  until e = '.';
-  e := s[0];
-
-  //---//
-  if e <> b64en.Encode('OK') then
-    ShowMessage('Что-то пошло не так и ваши ответы не обработались сервером!!!'
-      + #13 + 'Сообщите админу!!!');
-
-  client.SendCmd('<right_ans> OK');
-  s.Clear;
-  repeat
-    e := client.ReadLn;
-    s.Add(e);
-  until e = '.';
-  e := s[0];
-  s.Free;
-  playsound(PChar(ExtractFileDir(Application.ExeName) +
-    '\data\sounds\RightAns.wav'), 0, SND_ASYNC);
-  ShowMessage(b64de.DecodeString(e));
-  GameLog.Add(b64de.DecodeString(e));
-  GameLog.Add('');
-  GameLog.Add('');
-
-  Edit1.Text := '';
-  Edit2.Text := '';
-  Edit3.Text := '';
-  memo1.Text := '';
-  disableedits;
-  game_timer.Enabled := true;
-  button2.Enabled := true;
-end;
-
-procedure TForm1.Button6Click(Sender: TObject);
-begin
-  frGameLog := TfrGameLog.Create(Application);
-  frGameLog.Memo1.Text := GameLog.Text;
-  frGamelog.ShowModal;
-  frGameLog.Free;
-end;
-
-procedure TForm1.Button7Click(Sender: TObject);
-var
-  s: TStringList;
-  e: string;
-  i: integer;
-begin
-  if not client.Connected then
-    exit;
-  client.SendCmd('<results> OK');
-  s := TStringlIst.Create;
-  repeat
-    e := client.ReadLn;
-    s.Add(e);
-  until e = '.';
-  s.Delete(s.Count - 1);
-  //---//
-  form4.StringGrid1.RowCount := s.Count;
-
-  form4.StringGrid1.ColWidths[0] := Round(form4.Width / 2) - 5;
-  form4.StringGrid1.ColWidths[1] := Round(form4.Width / 2) - 5;
-
-  for i := 0 to s.Count - 1 do
+  if wait1.Tag = 0 then
   begin
-    e := s[i];
-    with Form4.StringGrid1 do
-    begin
-      Cells[0, i] := copy(e, 0, pos(#9, e) - 1);
-      Cells[1, i] := copy(e, pos(#9, e) + 1, length(e));
-    end;
+    wait1.Tag := 0;
+    wait1.Caption := '70';
+    wait1.Stop;
   end;
-  form4.ShowModal;
-  s.Free;
 end;
 
-procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  e: string;
-  s: TStringlist;
+procedure TForm1.N4Click(Sender: TObject);
 begin
-  if ssCtrl in Shift then
-  begin
-    if Key = Ord(sEgg[icnt]) then
-    begin
-      if (icnt = iEggLength) and (client.Connected) then
-      begin
-        icnt := 1;
-        s := TStringlist.Create;
-        client.SendCmd('<right_ans> OK');
-        repeat
-          e := client.ReadLn;
-          s.Add(e);
-        until e = '.';
-        e := s[0];
-        s.Free;
-        ShowMessage(b64de.DecodeString(e));
-      end
-
-      else
-        inc(icnt);
-    end
-    else
-      icnt := 1;
-  end;
+  wait1.Visible := not wait1.Visible;
 end;
+
+procedure TForm1.N7Click(Sender: TObject);
+begin
+  sd.Filter := 'TXT files|*.txt';
+  if sd.Execute then
+    memo2.Lines.SaveToFile(sd.FileName);
+  sd.Filter := 'Questions DataBase|*.qdb';
+end;
+
+procedure TForm1.onemscTimer(Sender: TObject);
+begin
+  onemsc.Enabled := false;
+  PublishMsg(onesec_name, onesec_say, onesec_time);
+end;
+
+procedure TForm1.PrivateMsg1Click(Sender: TObject);
+begin
+  if pos('<private to=', memo3.Text) = 1 then
+    memo3.Text := copy(memo3.text, pos('>', memo3.Text) - 1, length(memo3.Text));
+  memo3.Text := '<private to=' + listbox1.Items[popupmenu2.tag] + '>' + memo3.Text;
+end;
+
+procedure TForm1.serverprivateCommand(ASender: TIdCommand);
+var
+s:TStringlist;
+begin
+s:=TStringlist.Create;
+s.Text:=b64de.DecodeString(Asender.Params[0]);
+PrivateMsg(b64de.DecodeString(s[0]),TClient(ASender.Thread.Data).Name,b64de.DecodeString(s[1]),now);
+ASender.Response.Text:='ok';
+ASender.Response.Add(b64en.Encode('OK'));
+ASender.SendReply;
+s.Free;
+end;
+
 end.
 
