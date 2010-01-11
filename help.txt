@@ -1,0 +1,27 @@
+procedure TForm3.col(ARow: Integer; bcolor:Tcolor; AColor: TColor);
+begin
+{-------------------Niaeeu-----------------}
+{:)}
+
+Memo1.SelStart:= SendMessage(Memo1.Handle, EM_LINEINDEX, ARow, 0);
+Memo1.SelLength:=length(Memo1.Lines[Arow]);
+Memo1.SelAttributes.BackColor:=Bcolor;
+Memo1.SelAttributes.Color:=Acolor;
+Memo1.SelAttributes.Style:=Memo1.SelAttributes.Style+[fsBold];
+
+     //fsBold, fsItalic, fsUnderline, fsStrikeOut
+       Memo1.SelLength := 0;
+  {   if length(Lines[Arow-1])>1 then begin
+     if Lines[Arow-1][1]='{' then
+      begin
+       if (Get_Priv_Nick(Lines[Arow-1])=Form1.Edit2.Text) or (Get_Priv_MyNick(Lines[Arow-1])=Form1.Edit2.Text)
+        then begin
+              SelStart := SendMessage(Handle, EM_LINEINDEX, ARow - 1, 0);
+              SelLength := Length(Lines[ARow - 1]);
+              Memo1.SelAttributes.BackColor:=$00E0E2E2;
+              Memo1.SelAttributes.Color:=clBlack;
+              Memo1.SelAttributes.Style:=[fsBold];
+              SelLength := 0;
+             end   }
+
+end;
